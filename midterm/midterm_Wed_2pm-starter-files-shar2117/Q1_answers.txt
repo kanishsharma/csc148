@@ -1,0 +1,31 @@
+=== Question 1 answers ===
+
+
+(a) Answer (YES or NO):
+
+    If yes, explain how, and if no, explain why not:
+
+    No, because the requirement for an initialiser method is that the
+    representation invariants have to be enforced through a postcondition given
+    the requirements of the Class Design Guideline.
+
+    But if for some reason this was not the case and this was a bad class,
+    the user would have to make sure to satisfy the precondition whenever
+    the class is created, otherwise there would be no guarantee by the
+    developer of the class methods working correctly.
+
+
+(b) The docstring is:
+
+    """Test that list.count will return the number of times integer v is
+    present in the list when given a random number of integers
+    """
+
+    The function body is:
+
+    counted_items = 0
+    for item in lst:
+        if item == v:
+            counted_items += 1
+    assert lst.count(v) == counted_items
+

@@ -1,0 +1,18 @@
+=== Question 2 answers ===
+
+
+(a) The output would be:
+    ['kyoko', [1, 10, 3], 'hi']
+
+
+
+(b) The blanks should be filled in as follows:
+
+    Blank #1:
+    things[i][i]
+
+    Blank #2:
+    lst.append(add)
+
+    Blank #3:
+    [name, nums]
