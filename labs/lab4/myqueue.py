@@ -99,4 +99,3 @@ def product_star(integer_queue: Queue) -> int:
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-pri
