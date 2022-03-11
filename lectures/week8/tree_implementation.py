@@ -15,7 +15,7 @@ class Tree:
     # === Representation Invariants ===
     # - If self._root is None then self._subtrees is an empty list.
     #   This setting of attributes represents an empty tree.
-    #
+    #   self._subtrees does not contain any empty trees
     #   Note: self._subtrees may be empty when self._root is not None.
     #   This setting of attributes represents a tree consisting of just one
     #   node.
