@@ -8,7 +8,6 @@ University of Toronto
 This module contains the reference implementation for binary search trees.
 """
 from __future__ import annotations
-from dataclasses import replace
 from typing import Any, List, Optional, Tuple
 
 
@@ -94,12 +93,14 @@ class BinarySearchTree:
         """
         if self.is_empty():
             return False
-        elif item == self._root:
-            return True
-        elif item < self._root:
-            return item in self._left  # or, self._left.__contains__(item)
         else:
-            return item in self._right  # or, self._right.__contains__(item)
+            if self._root == item:
+                return True
+            elif item < self._root:
+                return self._left.__contains__(item)
+            else:
+                return self._right.__contains__(item)
+
 
     # def insert(self, item: Any) -> None:
     #     """Insert <item> into this tree.
@@ -150,86 +151,55 @@ class BinarySearchTree:
         >>> bst.items()
         [3, 11]
         """
-        if self.is_empty():
-            return
-        elif item < self._root:
-            self._left.delete(item)
-        elif item > self._root:
-            self._right.delete(item)
-        else:
-            # case where item == self._root
+        if self.is_empty(): 
+            pass
+        elif self._root == item:
             self.delete_root()
-
+        elif self._root < item:
+            self._left.delete(item)
+        else:
+            self._right.delete(item)
+            
+            
     def delete_root(self) -> None:
         """Remove the root of this tree.
     
         Precondition: this tree is *non-empty*.
-
-        >>> bst = BinarySearchTree(5)
-        >>> bst._right = BinarySearchTree(7)
-        >>> bst._right._left = BinarySearchTree(6)
-        >>> bst._right._right = BinarySearchTree(8)
-        >>> bst.items()
-        [5, 6, 7, 8]
-        >>> bst.delete_root()
-        >>> bst.items()
-        [6, 7, 8]
-        >>> bst = BinarySearchTree(5)
-        >>> bst._left = BinarySearchTree(3)
-        >>> bst._left._left = BinarySearchTree(2)
-        >>> bst._left._right = BinarySearchTree(4)
-        >>> bst.items()
-        [2, 3, 4, 5]
-        >>> bst.delete_root()
-        >>> bst.items()
-        [2, 3, 4]
         """
-        if self._left.is_empty() and self._right.is_empty():
-            # in order to not violate RI
-            self._root = None
-            self._left = None
-            self._right = None
-        elif self._left.is_empty():
-            self._root, self._left, self._right = (
-                self._right._root, self._right._left, self._right._right
-            )
-        elif self._right.is_empty():
-            self._root, self._left, self._right = (
-                self._left._root, self._left._left, self._left._right
-            )
+        # if self.is_empty():
+        #     self._root = None
+        #     self._left = None
+        #     self._right  = None
+        if self._left.is_empty():
+            self._left, self._right, self._root = (self._right._left, self._right._right, self._right)
+        elif self._right.is_empty(): 
+            self._left, self._right, self._root = (self._left._left, self._left._right, self._left)
         else:
             self._root = self._left.extract_max()
+            
+        # ! can merge self.is_empty() and self._left.is_empty() because it reassigns to None 
+        
+        
 
     def extract_max(self) -> Any:
         """Remove and return the maximum item stored in this tree.
     
         Precondition: this tree is *non-empty*.
         """
-        # if self._right.is_empty():
-        #     root = self._root
-        #     self._root, self._left, self._right = (
-        #         self._left._root, self._left._left, self._left._right
-        #     )
-        #     return root
-        # else:
-        #     return self._right.extract_max()
-        
-        # if self._right.is_empty() and self._left.is_empty():
-        #     root = self._root
-        #     self._root = None
-        #     self._left = None
-        #     self._right = None
-        
-        if self._right.is_empty():
+
+        if self._right.is_empty(): 
             biggest = self._root
             
-            self._root, self._left, self._right = ( 
-             self._left, self._left._left, self._left._right)
-            
-            return biggest
-        
+            self._left, self._right, self._root = (self._left._left, self._left._right, self._left)
+        # ! This works because the only case where the recursion wouldn't work is if the max node has one left value instead of None
+            return biggest  # return this because it's the biggest value (no right value)
         else:
-            return self._right.extract_max() 
+            # we know the right tree isn't empty, bc otherwise we would've hit the base case
+            # current_max = self._root
+            # right_max = self._right.extract_max()
+            # if right_max > current_max:
+            #     return right_max
+            return self._right.extract_max()
             
             
             
@@ -262,5 +232,5 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    import python_ta
-    python_ta.check_all()
+    # import python_ta
+    # python_ta.check_all()
