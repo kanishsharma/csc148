@@ -16,5 +16,6 @@ def flatten(obj) -> List[int]:
     if isinstance(obj, int):
         return [obj]
     else:
-        s = []
-        return sum((flatten(elem) for elem in obj), s) 
+        # s = []
+        # return sum((flatten(elem) for elem in obj), s) 
+        return sum([flatten(sublist) for sublist in obj], [])
