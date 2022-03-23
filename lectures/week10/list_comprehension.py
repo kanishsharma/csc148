@@ -14,7 +14,7 @@ def sum_nested(obj: Union[int, List]) -> int:
 def flatten(obj) -> List[int]:
     """Return a (non-nested) list of the integers in <obj>."""
     if isinstance(obj, int):
-        return obj
+        return [obj]
     else:
         s = []
-        return sum(([flatten(elem)] for elem in obj), s) 
+        return sum((flatten(elem) for elem in obj), s) 
