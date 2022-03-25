@@ -8,7 +8,7 @@ University of Toronto
 This module contains the reference implementation for binary search trees.
 """
 from __future__ import annotations
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 
 class BinarySearchTree:
@@ -226,11 +226,71 @@ class BinarySearchTree:
             answer += self._left._str_indented(depth + 1)
             answer += self._right._str_indented(depth + 1)
             return answer
+    
+    def print_leaves(self) -> str:
+        """Return a string representation of all the leaves in a BST
+        from left to right
+        
+        
+        >>> bst = BinarySearchTree(12)
+        >>> bst._left = BinarySearchTree(8)
+        >>> bst._left._left = BinarySearchTree(6)
+        >>> bst._left._right = BinarySearchTree(9)
+        >>> bst._right = BinarySearchTree(15)
+        >>> bst._right._right = BinarySearchTree(18)
+        >>> bst._right._left = BinarySearchTree(14)
+        >>> bst._right._left._left = BinarySearchTree(13)
+        >>> bst.print_leaves()
+        '6 9 13 18'
+        """
+        
+        
+        if self.is_empty():
+            return 
+        elif self._left.is_empty() and self._right.is_empty():
+            return str(self._root)
+        else:
+            return_str = ""
+            if not self._left.is_empty():
+                return_str += self._left.print_leaves()
+            if not self._right.is_empty():
+                return_str += ' ' + self._right.print_leaves()
+            return return_str
 
+        # ! Didn't work because I was only checking for nodes with both left and right
+        # ! Need to instead look at either case 
+    
+    def count_leaves(self) -> int:
+        """Count the number of leaves present in any given BST 
+        """
+        
+        if self.is_empty():
+            return 0 
+        elif self._left.is_empty() and self._right.is_empty():
+            return 1
+        else:
+            counter = 0 
+    
+    def unique(obj: Union[int, List]) -> List[int]:
+        """Return a (non-nested) list of the integers in <obj>, with no duplicates 
+        
+        >>> uniques([13, [2, 13], 4])
+        """
+        if isinstance(obj, int):
+            return [obj]
+        else:
+            s = []
+            for sublist in obj:
+                new_list = unique(sublist)
+                for item in new_list:
+                    if item not in s:
+                        sublist.append(item)
+            return s
+        
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    # import python_ta
-    # python_ta.check_all()
+    import python_ta
+    python_ta.check_all()
