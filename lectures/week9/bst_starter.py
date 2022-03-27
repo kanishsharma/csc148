@@ -256,11 +256,13 @@ class BinarySearchTree:
             answer += self._left._str_indented(depth + 1)
             answer += self._right._str_indented(depth + 1)
             return answer
+    
+  
 
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    import python_ta
-    python_ta.check_all()
+    # import python_ta
+    # python_ta.check_all()

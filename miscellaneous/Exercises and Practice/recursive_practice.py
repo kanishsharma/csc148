@@ -46,3 +46,10 @@ def recursive_factorial(n: int) -> int:
         total = n * recursive_factorial(n-1)
         return total
 
+
+def power(n:int, exp: int) -> int:
+    """Takes the variable n to the power exp"""
+    if exp == 1:
+        return n
+    else:
+        return n * power(n, exp-1)

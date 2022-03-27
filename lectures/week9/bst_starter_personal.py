@@ -271,26 +271,26 @@ class BinarySearchTree:
         else:
             counter = 0 
     
-    def unique(obj: Union[int, List]) -> List[int]:
-        """Return a (non-nested) list of the integers in <obj>, with no duplicates 
-        
-        >>> uniques([13, [2, 13], 4])
-        """
-        if isinstance(obj, int):
-            return [obj]
-        else:
-            s = []
-            for sublist in obj:
-                new_list = unique(sublist)
-                for item in new_list:
-                    if item not in s:
-                        sublist.append(item)
-            return s
-        
+def unique(obj: Union[int, List]) -> List[int]:
+    """Return a (non-nested) list of the integers in <obj>, with no duplicates 
+    
+    >>> uniques([13, [2, 13], 4])
+    """
+    if isinstancs(obj, int):
+        return [obj]
+    else:
+        s = []
+        for sublist in obj:
+            new_list = unique(sublist)
+            for item in new_list:
+                if item not in s:
+                    s.append(item)
+        return s
+    
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    import python_ta
-    python_ta.check_all()
+    # import python_ta
+    # python_ta.check_all()
