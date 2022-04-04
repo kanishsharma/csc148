@@ -266,3 +266,16 @@ if __name__ == '__main__':
 
     # import python_ta
     # python_ta.check_all()
+
+
+#   while index1 < len(lst1) and index2 < len(lst2) and index3 < len(lst3):
+#         if lst1[index1] <= lst2[index2] and lst1[index1] <= lst2[index3]:
+#             merge.append(lst1[index1])
+#             index1 += 1
+#         elif lst2[index2] <= lst1[index1] and lst2[index2] <= lst2[index3]:
+#             merge.append(lst2[index2])
+#             index2 += 1
+#         else:
+#             merge.append(lst3[index3])
+#             index3 += 1
+#     return merge + lst1[index1:] + lst2[index2:] + lst3[index3:]
