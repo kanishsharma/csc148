@@ -98,10 +98,48 @@ def add_one(obj: Union[list, int]) -> None:
     """
     pass
 
+def consistent_depth(obj: Union[int, list]) -> bool:
+    """ Return True iff obj is nested to a consistent depth throughout
+    
+    >>> consistent_depth(6)
+    True
+    >>> consistent_depth([1, 2, 3, 4])
+    True
+    >>> consistent_depth([[1, 2], [[3]], 4])
+    False
+    """
+    if isinstance(obj, int):
+        return True
+    if len(obj) == 0:
+        return True
+    else:
+        depth_counter = depth_determiner(obj[0])
+        for item in obj:
+            temp_var = depth_determiner(item)
+            if temp_var != depth_counter:
+                return False
+        return True    
+
+
+def depth_determiner(obj: Union[int, list]) -> int:
+    """Determine the depth of any given nested list
+    """
+    if isinstance(obj, int):
+        return 1
+    elif obj == []:
+        return 1
+    else:
+        depth_counter = 0
+        for item in obj:
+            temp = depth_determiner(item)
+            depth_counter += temp
+        return depth_counter
+
+consistent_depth([1, 2, 3, 4])
 
 if __name__ == '__main__':
-    import python_ta
-    python_ta.check_all()
+    # import python_ta
+    # python_ta.check_all()
 
-    # import doctest
-    # doctest.testmod()
+    import doctest
+    doctest.testmod()
