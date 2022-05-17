@@ -137,6 +137,15 @@ def depth_determiner(obj: Union[int, list]) -> int:
 
 consistent_depth([1, 2, 3, 4])
 
+def nested_sum(obj):
+    sum = 0
+    if isinstance(obj, int):
+        return obj
+    else:
+        for sublist in obj:
+            sum += nested_sum(sublist)
+    return sum
+
 if __name__ == '__main__':
     # import python_ta
     # python_ta.check_all()

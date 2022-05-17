@@ -105,7 +105,6 @@ def test_one_party_one_riding_read_results() -> None:
     e.read_results(file)
     assert e.popular_vote() == {'Liberal': 113}
 
-
 def test_adding_new_riding_read_results() -> None:
     """Test Election.read_results by adding a new riding"""
     content = 'header\n' + \
@@ -132,7 +131,6 @@ def test_adding_zero_votes_read_results() -> None:
     assert e.ridings_recorded() == []
     assert e._parties == []
 
-
 def test_adding_multiple_party_votes_read_results() -> None:
     """Test Election.read_results by updating the same party"""
     content1 = 'header\n' + \
@@ -145,14 +143,14 @@ def test_adding_multiple_party_votes_read_results() -> None:
                                 '" 1"', '"Toronto"', 'N', 'N', '""', '1',
                                 '367', '"Bennett"', '""', '"Carolyn"',
                                 '"Liberal"', '"Liberal"', 'Y', 'Y', '20'])
-
+                                
     e = Election(date(2020, 1, 1))
     e.read_results(StringIO(content1))
     e.read_results(StringIO(content2))
     assert e.ridings_recorded() == ['St. Paul\'s']
     assert e._parties == ['Liberal']
     assert e.results_for('St. Paul\'s', 'Liberal') == 30
-
+    
 """
 Tests for Election.results_for
 """
@@ -171,7 +169,7 @@ def test_no_party_in_riding_results_for() -> None:
     e = Election(date(2020, 1, 1))
     e.update_results('r1', 'ndp', 10)
     assert e.results_for('r1', 'pc') == None
-
+    
 """
 Tests for Election.riding_winners
 """
@@ -268,36 +266,106 @@ def test_simple_election_winners() -> None:
     e = simple_election_setup()
     assert e.election_winners() == ['ndp', 'pc']
 
-# def test_no_winners_election_winners() -> None:
-#     """Test Election.election_winners with election where no seats were held by any party"""
-#     e = Election(date(2020, 1, 1))
-#     e.update_results('r1', 'ndp', 100)
-#     e.update_results('r1', 'lib', 100)
+def test_no_winners_election_winners() -> None:
+    """Test Election.election_winners with election where no seats were held by any party"""
+    e = Election(date(2020, 1, 1))
+    e.update_results('r1', 'ndp', 100)
+    e.update_results('r1', 'lib', 100)
 
-#     e.update_results('r2', 'pc', 100)
-#     e.update_results('r2', 'ndp', 100)
-#     assert e.election_winners() == ['ndp', 'lib', 'pc']
+    e.update_results('r2', 'pc', 100)
+    e.update_results('r2', 'ndp', 100)
+    assert e.election_winners() == ['ndp', 'lib', 'pc']
 
-# def test_empty_election_winners() -> None:
-#     """Test Election.election_winners with empty election"""
-#     e = Election(date(2020, 1, 1))
-#     assert e.election_winners() == []
-
-
+def test_empty_election_winners() -> None:
+    """Test Election.election_winners with empty election"""
+    e = Election(date(2020, 1, 1))
+    assert e.election_winners() == []
 
 
 
+
+
+
+
+"""
+Tests for Jurisdiction.party_wins
+"""
 def test_simple_jurisdiction_party_wins() -> None:
     """Test Jurisdiction.party_wins with a file with a single line. """
     j = simple_jurisdiction_setup()
     assert j.party_wins('Liberal') == [date(2000, 1, 2)]
 
+def test_multiple_elections_party_wins() -> None:
+    """Test Jurisdiction.party_wins with elections where the party had some wins"""
+    j = Jurisdiction('Canada')
 
+    e1 = Election(date(2020, 1, 1))
+    e1.update_results('r1', 'ndp', 100)
+    e1.update_results('r1', 'pc', 15)
+    e1.update_results('r2', 'ndp', 100)
+    e1.update_results('r2', 'lib', 60)
+
+    e2 = Election(date(2021, 1, 1))
+    e2.update_results('r3', 'lib', 30)
+    e2.update_results('r3', 'ndp', 2)
+    e2.update_results('r4', 'lib', 30)
+
+    j._elections = {date(2020, 1, 1): e1, date(2021, 1, 1): e2}
+
+    assert j.party_wins('ndp') == [date(2020, 1, 1)]
+
+def test_no_elections_won_party_wins() -> None:
+    """Test Jurisdiction.party_wins with elections where the party did not win anything"""
+    j = Jurisdiction('Canada')
+
+    e1 = Election(date(2020, 1, 1))
+    e1.update_results('r1', 'ndp', 10)
+    e1.update_results('r1', 'pc', 15)
+
+    e2 = Election(date(2021, 1, 1))
+    e2.update_results('r2', 'lib', 30)
+    e2.update_results('r2', 'ndp', 2)
+
+    j._elections = {date(2020, 1, 1): e1, date(2021, 1, 1): e2}
+
+    assert j.party_wins('ndp') == []
+
+def test_empty_jurisdiction_party_wins() -> None:
+    """Test Jurisdiction.party_wins with empty jurisdiction"""
+    j = Jurisdiction('Canada')
+    assert j.party_wins('ndp') == []
+
+
+"""
+Tests for Jurisdiction.party_history
+"""
 def test_simple_jurisdiction_party_history() -> None:
     """Test Jurisdiction.party_history with a file with a single line."""
     j = simple_jurisdiction_setup()
     assert j.party_history('Liberal') == {date(2000, 1, 2): 1.0}
 
+def test_doctest_party_history() -> None:
+    """Test Jurisdiction.party_history using doctest code provided"""
+    c = Jurisdiction('Canada')
+    with open('data/parkdale-highpark.csv') as file:
+        c.read_results(2015, 2, 3, file)
+    with open('data/nunavut.csv') as file:
+        c.read_results(2015, 2, 3, file)
+    with open('data/labrador.csv') as file:
+        c.read_results(2015, 2, 3, file)
+    assert c.party_history('Liberal') == {date(2015, 2, 3): 0.47207607279046193}
+    assert c.party_history('Conservative') == {date(2015, 2, 3): 0.14858570256311243}
+    assert c.party_history('Green Party') == {date(2015, 2, 3): 0.023229714727035767}
+    assert c.party_history('NDP-New Democratic Party') == {date(2015, 2, 3): 0.3441135299512478}
+
+def test_empty_jurisdiction_party_history() -> None:
+    """Test Jurisdiction.party_history with empty jurisdiction"""
+    j = Jurisdiction('Canada')
+    assert j.party_history('lib') == dict()
+
+"""
+Tests for Jurisdiction.riding_changes
+"""
 
 def test_simple_jurisdiction_riding_changes() -> None:
     """Test Jurisdiction.riding_changes with two Elections."""
@@ -307,7 +375,6 @@ def test_simple_jurisdiction_riding_changes() -> None:
     res2.close()
     assert j.riding_changes() == [({"St. Paul's"}, {"Toronto--St. Paul's"})]
 
-
 def test_one_riding_riding_changes() -> None:
     """Test Jurisdiction.riding_changes with only one election"""
     j = Jurisdiction('Canada')
@@ -316,6 +383,39 @@ def test_one_riding_riding_changes() -> None:
     e.update_results('r1', 'ndp', 10)
     j._elections = {date(2020, 1, 1): e}
     assert j.riding_changes() == []
+
+def test_completely_different_riding_changes() -> None:
+    """Test Jurisdiction.riding_changes with elections with completely different ridings"""
+    j = Jurisdiction('Canada')
+
+    e1 = Election(date(2020, 1, 1))
+    e1.update_results('r1', 'ndp', 10)
+    e1.update_results('r2', 'pc', 15)
+
+    e2 = Election(date(2021, 1, 1))
+    e2.update_results('r3', 'lib', 30)
+    e2.update_results('r4', 'ndp', 2)
+
+    j._elections = {date(2020, 1, 1): e1, date(2021, 1, 1): e2}
+    assert j.riding_changes() == [({'r1', 'r2'}, {'r3', 'r4'})]
+
+def test_same_ridings_riding_changes() -> None:
+    """Test Jurisdiction.riding_changes with elections that have the same ridings"""
+    j = Jurisdiction('Canada')
+
+    e1 = Election(date(2020, 1, 1))
+    e1.update_results('r1', 'ndp', 10)
+    e1.update_results('r2', 'pc', 15)
+
+    e2 = Election(date(2021, 1, 1))
+    e2.update_results('r1', 'lib', 30)
+    e2.update_results('r2', 'ndp', 2)
+
+    j._elections = {date(2020, 1, 1): e1, date(2021, 1, 1): e2}
+    assert j.riding_changes() == [(set(), set())]
+
+
+
 
 
 if __name__ == '__main__':

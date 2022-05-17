@@ -216,6 +216,20 @@ class BinarySearchTree:
         >>> bst.items_in_range(10, 13)
         [11, 13]
         """
+        # if self.is_empty():
+        #     return []
+        # else:
+        #     return_list = []
+        #     if self._root < start:
+        #         return_list.append(self._right.items_in_range(start, end))
+        #     elif start < self._root < end:
+        #         return_list.append(self._left.items_in_range(start, self._root))
+        #         return_list.append(self._right.items_in_range(self._root, end))
+        #     else:
+        #         return_list.append(self._left.items_in_range(start, end))
+        #     for i in range(len(return_list) - 1):
+        #         return_list[i] = return_list[i]
+        #     return return_list
         if self.is_empty():
             return []
         elif self._root > end:
@@ -228,7 +242,8 @@ class BinarySearchTree:
                 [self._right] +
                 self._right.items_in_range(self._root, end)
             )
-            
+                  
+        
         # try to understand the logic behind it - why is the base case so simple?
         # ! No matter what the range is for self._left, because you know everything on the left is less than the root so it doesn't change much 
 
@@ -349,5 +364,5 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    import python_ta
-    python_ta.check_all()
+    # import python_ta
+    # python_ta.check_all()

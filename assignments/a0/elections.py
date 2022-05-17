@@ -19,7 +19,7 @@ Copyright (c) University of Toronto
 from datetime import date
 from typing import Dict, Tuple, List, Set, Optional, TextIO
 
-# Constants that can be used throughout this module.
+# Constants that can be used through                                                                        out this module.
 # Column numbers where various values can be found in the csv files containing
 # election results.
 RIDING = 1
@@ -96,15 +96,7 @@ class Election:
         >>> e.ridings_recorded()
         ['r1', 'r2']
         """
-        ridings_recorded = []
-        for key in self._results:
-            no_votes = True
-            for item in self._results[key]:
-                if self._results[key][item] > 0:
-                    no_votes = False
-            if not no_votes:
-                ridings_recorded.append(key)
-        return ridings_recorded
+        return self._ridings
 
     def update_results(self, riding: str, party: str, votes: int) -> None:
         """Update this election to reflect that in <riding>, <party> received
@@ -125,17 +117,21 @@ class Election:
         1001
         """
         if votes > 0:
+            # update self._results according to whether the riding/party exists
+            if riding in self._results:
+                if party in self._results[riding]:
+                    self._results[riding][party] += votes
+                else:
+                    self._results[riding][party] = votes
+            else:
+                self._results[riding] = {}
+                self._results[riding][party] = votes
+
+            # update self._ridings and self._parties if necessary
+            if riding not in self._ridings:
+                self._ridings.append(riding)
             if party not in self._parties:
                 self._parties.append(party)
-            if riding not in self._results:
-                self._results[riding] = {party: votes}
-            elif riding in self._results:
-                if party not in self._results[riding]:
-                    self._results[riding][party] = votes
-                elif party in self._results[riding]:
-                    current_votes = self._results[riding][party]
-                    new_votes = current_votes + votes
-                    self._results[riding][party] = new_votes
 
     def read_results(self, input_stream: TextIO) -> None:
         """Update this election with the results in input_stream.
@@ -143,13 +139,20 @@ class Election:
         Precondition: input_stream is an open csv file, in the format defined
         in the A0 handout.
         """
-        input_stream.readline()   # reads header in file
+        # skip first line containing column names
+        input_stream.readline()
 
+        # iterate through remaining lines in csv file
+        # and update election accordingly
         for line in input_stream:
-            current_line = line.strip('\n').split(',')
-            self.update_results(current_line[RIDING].strip('"'),
-                                current_line[PARTY].strip('"'),
-                                int(current_line[VOTES]))
+            columns = line.split(',')
+            if int(columns[VOTES]) > 0:
+                self.update_results(
+                    columns[RIDING].strip('"'),
+                    columns[PARTY].strip('"'),
+                    int(columns[VOTES])
+                )
+        # assume that the file is closed
 
     def results_for(self, riding: str, party: str) -> Optional[int]:
         """Return the number of votes received in <riding> by <party> in
@@ -172,11 +175,6 @@ class Election:
         if riding in self._results:
             if party in self._results[riding]:
                 return self._results[riding][party]
-        elif riding in self._results:
-            if party not in self._results[riding]:
-                return None
-        else:
-            return None
         return None
 
     def riding_winners(self, riding: str) -> List[str]:
@@ -196,15 +194,11 @@ class Election:
         >>> e.riding_winners('r1')
         ['pc']
         """
-        highest_vote = 0
-        highest_party = []
-        for party in self._results[riding]:
-            if self._results[riding][party] > highest_vote:
-                highest_vote = self._results[riding][party]
-                highest_party = [party]
-            elif self._results[riding][party] == highest_vote:
-                highest_party.append(party)
-        return highest_party
+        riding_res = self._results[riding]
+        # calculate the highest number of votes recorded in _results
+        max_votes = max(riding_res.values())
+        # return list of all parties that recorded max_votes votes
+        return [p for p, v in riding_res.items() if v == max_votes]
 
     def popular_vote(self) -> Dict[str, int]:
         """For each party, return the total number of votes it earned, across
@@ -224,17 +218,15 @@ class Election:
         >>> e.popular_vote() == {'ndp': 8, 'lib': 7, 'pc': 7, 'green': 6}
         True
         """
-        final_dict = {}
-
+        # generate dict with parties as keys with values of 0
+        total_votes = dict.fromkeys(self._parties, 0)
+        # iterate through every party in every riding
+        # and add to the overall count
         for riding in self._results:
             for party in self._results[riding]:
-                if party not in final_dict and self._results[riding][party] > 0:
-                    final_dict[party] = self._results[riding][party]
-                elif party in final_dict:
-                    current_val = final_dict[party]
-                    new_val = current_val + self._results[riding][party]
-                    final_dict[party] = new_val
-        return final_dict
+                total_votes[party] += self._results[riding][party]
+
+        return total_votes
 
     def party_seats(self) -> Dict[str, int]:
         """For each party, return the number of ridings that it won in this
@@ -256,17 +248,14 @@ class Election:
         >>> e.party_seats() == {'pc': 1, 'ndp': 1, 'lib': 0, 'green': 0}
         True
         """
-        ridings_won = {}
-
+        seats_won = dict.fromkeys(self._parties, 0)
+        # iterate through ridings, calculate winner and increment party
+        # seats if there is one definitive winner (if tie then ignore)
         for riding in self._results:
-            for party in self._results[riding]:
-                if party not in ridings_won:
-                    ridings_won[party] = 0
-            riding_winners = self.riding_winners(riding)
-            if len(riding_winners) == 1:
-                ridings_won[riding_winners[0]] += 1
-
-        return ridings_won
+            winners = self.riding_winners(riding)
+            if len(winners) == 1:
+                seats_won[winners[0]] += 1
+        return seats_won
 
     def election_winners(self) -> List[str]:
         """Return the party (or parties, in the case of a tie) that won the
@@ -286,18 +275,14 @@ class Election:
         >>> e.election_winners()
         ['pc']
         """
-
-        current_max_riding = 0
-        current_winning_party = []
-
-        searched_dict = self.party_seats()
-        for party in searched_dict:
-            if searched_dict[party] > current_max_riding:
-                current_max_riding = searched_dict[party]
-                current_winning_party = [party]
-            elif searched_dict[party] == current_max_riding:
-                current_winning_party.append(party)
-        return current_winning_party
+        # get the number of seats each party has
+        seats = self.party_seats()
+        # if not empty, then calculate the parties with the highest
+        # number of seats
+        if len(seats.values()) > 0:
+            max_seats = max(seats.values())
+            return [p for p, s in seats.items() if s == max_seats]
+        return []
 
 
 class Jurisdiction:
@@ -341,13 +326,14 @@ class Jurisdiction:
         Precondition: input_stream is an open csv file, in the format defined
         in the A0 handout.
         """
-        given_date = date(year, month, day)
-        if given_date not in self._elections:
-            new_election = Election(given_date)
-            new_election.read_results(input_stream)
-            self._elections[given_date] = new_election
+        d = date(year, month, day)
+        if d in self._elections:
+            e = self._elections[d]
         else:
-            self._elections[given_date].read_results(input_stream)
+            e = Election(d)
+
+        e.read_results(input_stream)
+        self._elections[d] = e
 
     def party_wins(self, party: str) -> List[date]:
         """Return a list of all dates on which <party> won an election in this
@@ -381,12 +367,11 @@ class Jurisdiction:
         >>> j.party_wins('lib')
         [datetime.date(2003, 5, 16), datetime.date(2003, 6, 1)]
         """
-        dates_won = []
-
-        for key in self._elections:
-            if party in self._elections[key].election_winners():
-                dates_won.append(key)
-        return dates_won
+        win_dates = []
+        for d, e in self._elections.items():
+            if party in e.election_winners():
+                win_dates.append(d)
+        return win_dates
 
     def party_history(self, party: str) -> Dict[date, float]:
         """Return this party's percentage of the popular vote in each election
@@ -420,19 +405,12 @@ class Jurisdiction:
         date(2004, 5, 16): 0.2}
         True
         """
-        return_dict = {}
-
-        for dates in self._elections:
-            results = self._elections[dates].popular_vote()
-
-            current_total = 0
-
-            for key in results:
-                current_total += results[key]
-            party_total = results[party]
-
-            return_dict[dates] = party_total / current_total
-        return return_dict
+        history = {}
+        for d, e in self._elections.items():
+            popular_vote_results = e.popular_vote()
+            total_seats = sum(popular_vote_results.values())
+            history[d] = popular_vote_results[party] / total_seats
+        return history
 
     def riding_changes(self) -> List[Tuple[Set[str], Set[str]]]:
         """Return the changes in ridings across elections in this jurisdiction.
@@ -461,27 +439,19 @@ class Jurisdiction:
         >>> j.riding_changes() == [({'r2'}, {'r3'})]
         True
         """
-        final_changes = []
+        dates = sorted(self._elections.keys())
+        changes = []
+        if len(dates) == 1:
+            return changes
 
-        e_riding_list = []
+        for i in range(len(dates) - 1):
+            A = set(self._elections[dates[i]].ridings_recorded())
+            B = set(self._elections[dates[i + 1]].ridings_recorded())
+            removed = A.symmetric_difference(B).intersection(A)
+            added = A.symmetric_difference(B).intersection(B)
+            changes.append((removed, added))
 
-        for item in self._elections:
-            e_riding_list.append(self._elections[item].ridings_recorded())
-
-        if len(e_riding_list) <= 1:
-            return []
-
-        for i in range(len(e_riding_list) - 1):  # prevents KeyError
-            first_set = set(e_riding_list[i])
-            second_set = set(e_riding_list[i + 1])
-            removed_items = first_set.intersection(second_set)
-            for item in removed_items:
-                if item in first_set:
-                    first_set.discard(item)
-                if item in second_set:
-                    second_set.discard(item)
-            final_changes.append((first_set, second_set))
-        return final_changes
+        return changes
 
 
 if __name__ == '__main__':
@@ -510,5 +480,3 @@ if __name__ == '__main__':
     print(c.party_history('Conservative'))
     print(c.party_history('Green Party'))
     print(c.party_history('NDP-New Democratic Party'))
-
-

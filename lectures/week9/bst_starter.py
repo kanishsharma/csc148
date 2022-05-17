@@ -279,3 +279,7 @@ if __name__ == '__main__':
 #             merge.append(lst3[index3])
 #             index3 += 1
 #     return merge + lst1[index1:] + lst2[index2:] + lst3[index3:]
+
+
+items_in_range()
+     

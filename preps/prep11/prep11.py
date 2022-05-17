@@ -20,7 +20,8 @@ This file includes the recursive sorting algorithms from this week's prep
 readings, and two short programming exercises to extend your learning about
 these algorithms in different ways.
 """
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
+from __future__ import annotations
 
 
 ################################################################################
@@ -200,11 +201,99 @@ def kth_smallest(lst: List, k: int) -> Any:
             return pivot
         else:
             return kth_smallest(bigger, k - len(smaller) - 1)
+        
+class Employee:
+    """An Employee: an employee in an organization.
+    === Attributes ===
+    name: The name of the Employee.
+    position: The name of the Employee’s position within the organization.
+    superior: The superior of the Employee in the organization.
+    subordinates: A list of the Employee’s direct subordinates.
+    """
+    name: str
+    salary: float
+    superior: Optional[Employee]
+    subordinates: List[Employee]
+    def __init__(self, name: str, salary: float) -> None:
+        """Initialize this Employee."""
+        self.name, self.salary = name, salary
+        self.superior, self.subordinates = None, []
+        class PartTimeEmployee(Employee):
+            """A part-time employee in an organization.
+            === Attributes ===
+            fraction: float
+            # plus all inherited attributes
+            """
+            def __init__(self, name: str, salary: float, fraction: float) -> None:
+                """Initialize this PartTimeEmployee."""
+                super().__init__(name, salary * fraction)
+                self.fraction = fraction
+    
+        def make_part_time(self, fraction: float) -> None:
+            """Make this Employee a PartTimeEmployee with fraction <fraction>.
+            If this Employee is already a PartTimeEmployee, do nothing.
+            >>> e = Employee('Anna', 100.0)
+            >>> e2 = Employee('Boss', 200.0)
+            >>> e3 = Employee('Minion', 50.0)
+            >>> e.superior = e2
+            >>> e2.subordinates.append(e)
+            >>> e.subordinates.append(e3)
+            >>> e3.superior = e
+            >>> e.make_part_time(0.8)
+            >>> len(e.superior.subordinates)
+            1  
+            >>> pte = e.superior.subordinates[0]
+            >>> pte.name, pte.salary, pte.fraction
+            ('Anna', 80.0, 0.8)  
+            >>> pte.subordinates[0] is e3
+            True  
+            >>> pte is e
+            False  
+            """
+            
+            if isinstance(self, PartTimeEmployee):
+                pass
+            else:
+                superior = self.superior
+                subordinates = self.subordinates
+                new_person = PartTimeEmployee.__init__(self, self.name, self.salary, self.fraction)
+                superior.subordinates.remove(self)
+                superior.subordinates.append(new_person)
+                for subordinate in self.subordinates:
+                    subordinate.superior = new_person
+                self.superior = superior
+                self.subordinates = subordinates
 
+def freeze_list(list_) -> list:
+    if isinstance(list_, int):
+        return list_
+    else:
+        lst2 = list_[:]
+        for i in range(len(lst2)):
+            lst2[i] = freeze_list(lst2[i])
+        return lst2
+
+def solve(x, y):
+    try: 
+        if x > 50:
+            raise ValueError
+        a = x/y
+        solution = 2 * a
+        print(solution)
+    except ZeroDivisionError:
+        print('Cannot divide by 0')
+    except NameError:
+        print('Name not defined inside')
+    except:
+        print('Something is wrong')
+    finally:
+        print('End of program')
+    
+        
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    import python_ta
-    python_ta.check_all(config={'disable': ['E1136']})
+    # import python_ta
+    # python_ta.check_all(config={'disable': ['E1136']})
